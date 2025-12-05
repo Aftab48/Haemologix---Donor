@@ -1,50 +1,172 @@
-# Welcome to your Expo app 👋
+# Donor Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native/Expo mobile application for blood donors to receive alerts, respond to donation requests, and manage their profile.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Real-time Alerts**: Receive and respond to blood donation requests from hospitals
+- **Profile Management**: View and manage donor profile, eligibility status, and availability
+- **Donation History**: Track past donations
+- **Notifications**: Stay updated with donation requests and status updates
+- **Location Services**: Calculate distance to hospitals and get directions
+- **Blood Type Compatibility**: Automatic filtering of alerts based on blood type compatibility
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- Node.js 18+ and npm/pnpm
+- Expo CLI (`npm install -g expo-cli`)
+- iOS Simulator (for Mac) or Android Emulator
+- Access to the haemologix-main backend API
 
-   ```bash
-   npx expo start
-   ```
+## Installation
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Install dependencies:
 ```bash
-npm run reset-project
+cd donor
+pnpm install
+# or
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install additional dependencies:
+```bash
+npx expo install expo-location
+```
 
-## Learn more
+3. API Configuration:
+The app is configured to use the production API at `https://www.haemologix.in`.
+No environment variables or configuration needed!
 
-To learn more about developing your project with Expo, look at the following resources:
+## Backend Setup
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The mobile app requires API route wrappers in the `haemologix-main` backend. See [API_SETUP.md](./API_SETUP.md) for detailed instructions on creating the required API endpoints.
 
-## Join the community
+**Required API Routes:**
+- `GET /api/user?email=...` - Get current user by email
+- `GET /api/alerts/donor` - Get all available alerts
+- `POST /api/donor/respond` - Respond to an alert (already exists)
+- `GET /api/donor/history?donorId=...` - Get donation history (optional)
 
-Join our community of developers creating universal apps.
+## Running the App
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Start the Expo development server:
+```bash
+npm start
+# or
+pnpm start
+```
+
+2. Run on your preferred platform:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Scan QR code with Expo Go app on your phone
+
+## Project Structure
+
+```
+donor/
+├── app/                    # Expo Router app directory
+│   ├── (tabs)/            # Tab navigation screens
+│   │   ├── dashboard.tsx  # Main alerts dashboard
+│   │   ├── notifications.tsx
+│   │   └── profile.tsx
+│   ├── register/          # Authentication screens
+│   │   ├── sign-in.tsx
+│   │   └── sign-up.tsx
+│   └── donation-history.tsx
+├── components/            # Reusable UI components
+├── contexts/             # React context providers
+│   ├── AuthContext.tsx
+│   └── UserContext.tsx
+├── lib/                  # Core functionality
+│   ├── api.ts           # API service layer
+│   ├── auth.ts          # Authentication utilities
+│   ├── location.ts      # Location services
+│   ├── types.ts         # TypeScript types
+│   └── utils.ts         # Utility functions
+└── API_SETUP.md         # Backend API setup guide
+```
+
+## Authentication
+
+The app uses email-based authentication. Users must be registered through the web application first. The mobile app then allows sign-in using email and password.
+
+**Note**: The current implementation uses email lookup. For production, implement proper JWT token-based authentication.
+
+## Key Features Implementation
+
+### Dashboard
+- Fetches real-time alerts from backend
+- Filters alerts by blood type compatibility
+- Calculates distance to hospitals
+- Accept/decline functionality
+- Pull-to-refresh support
+- Auto-refresh every 30 seconds
+
+### Profile
+- Displays user information
+- Eligibility status and progress
+- Availability toggle
+- Donation history navigation
+- Account management
+
+### Notifications
+- Alert notifications
+- Donation confirmations
+- Status updates
+- Pull-to-refresh support
+
+## Development
+
+### Adding New Features
+
+1. **API Integration**: Add new API functions in `lib/api.ts`
+2. **Types**: Add TypeScript types in `lib/types.ts`
+3. **Screens**: Create new screens in `app/` directory
+4. **Components**: Add reusable components in `components/`
+
+### Testing
+
+1. Ensure backend API routes are set up (see API_SETUP.md)
+2. Start the backend server
+3. Test authentication flow
+4. Test alert fetching and responses
+5. Test location services (requires device or emulator with location enabled)
+
+## Troubleshooting
+
+### API Connection Issues
+
+**"Network request failed" Error:**
+- **API URL**: The app uses `https://www.haemologix.in` - ensure the backend is deployed and accessible
+- **CORS issues**: Ensure backend allows requests from mobile app
+- **Network connectivity**: Check your internet connection
+- **Backend status**: Verify the production backend is running at https://www.haemologix.in
+
+### Location Services
+- Grant location permissions when prompted
+- For iOS simulator: Set location in Features > Location
+- For Android emulator: Use extended controls to set location
+
+### Authentication Issues
+- Ensure user is registered in backend
+- Check email format is correct
+- Verify backend API route `/api/user` is working
+
+## Production Deployment
+
+1. Build the app:
+```bash
+eas build --platform ios
+# or
+eas build --platform android
+```
+
+2. Configure production API URL in environment variables
+3. Set up proper authentication (JWT tokens)
+4. Configure push notifications (if needed)
+5. Test thoroughly before release
+
+## License
+
+See main project license.
