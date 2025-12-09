@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '../components/GradientBackground';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
+import Logo from '../components/Logo';
 import { useAuth } from '../contexts/AuthContext';
 import { donationApi } from '../lib/api';
 import type { DonationHistory } from '../lib/types';
@@ -103,7 +104,7 @@ export default function DonationHistoryScreen() {
 
             {donations.length === 0 ? (
               <View className="flex-1 justify-center items-center px-6 py-12">
-                <Ionicons name="time-outline" size={64} color="#FFFFFF" style={{ opacity: 0.5 }} />
+                <Logo showLabel={false} size="small" />
                 <Text className="text-white text-xl font-semibold mt-6 mb-2">
                   No Donation History
                 </Text>

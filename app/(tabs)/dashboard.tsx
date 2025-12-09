@@ -7,6 +7,7 @@ import GradientBackground from '../../components/GradientBackground';
 import InfoCard from '../../components/InfoCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorAlert from '../../components/ErrorAlert';
+import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import { alertsApi } from '../../lib/api';
@@ -353,7 +354,7 @@ export default function DashboardScreen() {
           <View className="px-6 mt-4">
             {activeAlerts.length === 0 ? (
               <View className="bg-white/10 rounded-2xl p-8 items-center">
-                <Ionicons name="notifications-outline" size={48} color="#FFFFFF" style={{ opacity: 0.5 }} />
+                <Logo showLabel={false} size="small" />
                 <Text className="text-white text-lg font-semibold mt-4 mb-2">
                   No Active Alerts
                 </Text>

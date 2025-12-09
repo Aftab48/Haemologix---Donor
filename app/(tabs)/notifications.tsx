@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import GradientBackground from '../../components/GradientBackground';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
 import { alertsApi } from '../../lib/api';
 import { formatLastActivity } from '../../lib/utils';
@@ -159,7 +160,7 @@ export default function NotificationsScreen() {
           >
             {notifications.length === 0 ? (
               <View className="flex-1 justify-center items-center px-6 py-12">
-                <Ionicons name="notifications-outline" size={64} color="#FFFFFF" style={{ opacity: 0.5 }} />
+                <Logo showLabel={false} size="small" />
                 <Text className="text-white text-xl font-semibold mt-6 mb-2">
                   No Notifications
                 </Text>
