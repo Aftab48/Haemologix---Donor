@@ -7,13 +7,15 @@ import GradientBackground from '../../components/GradientBackground';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDemoSandbox } from '../../contexts/DemoSandboxContext';
 import { alertsApi } from '../../lib/api';
 import { formatLastActivity } from '../../lib/utils';
 import type { Alert, Notification } from '../../lib/types';
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { user, isAuth } = useAuth();
+  const { isAuth } = useAuth();
+  const demo = useDemoSandbox();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -24,11 +26,24 @@ export default function NotificationsScreen() {
       return;
     }
     fetchNotifications();
-  }, [isAuth, router]);
+  }, [demo.active, isAuth, router]);
+
+  useEffect(() => {
+    if (!demo.active) return;
+    setNotifications(demo.notifications);
+    setLoading(demo.loading && !demo.snapshot);
+    setRefreshing(false);
+  }, [demo.active, demo.loading, demo.notifications, demo.snapshot]);
 
   async function fetchNotifications() {
     try {
       setLoading(true);
+
+      if (demo.active) {
+        await demo.refresh(false);
+        setNotifications(demo.notifications);
+        return;
+      }
       
       // Fetch alerts to create notifications
       const alertsResponse = await alertsApi.getAllAlerts();
@@ -165,7 +180,7 @@ export default function NotificationsScreen() {
                   No Notifications
                 </Text>
                 <Text className="text-white/70 text-center text-sm">
-                  You'll receive notifications about donation requests and updates here.
+                  {"You'll receive notifications about donation requests and updates here."}
                 </Text>
               </View>
             ) : (

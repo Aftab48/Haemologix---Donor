@@ -10,6 +10,7 @@ import ErrorAlert from '../../components/ErrorAlert';
 import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
+import { useDemoSandbox } from '../../contexts/DemoSandboxContext';
 import { alertsApi } from '../../lib/api';
 import { getCurrentLocation, calculateDistanceToLocation, openDirections, callPhone } from '../../lib/location';
 import { isCompatible, formatUrgency, type BloodTypeFormat } from '../../lib/utils';
@@ -19,6 +20,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { user, isAuth } = useAuth();
   const { user: userData, updateUserAvailability } = useUser();
+  const demo = useDemoSandbox();
   const [alerts, setAlerts] = useState<AlertType[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,18 +37,27 @@ export default function DashboardScreen() {
 
   // Get user location on mount
   useEffect(() => {
-    loadUserLocation();
-  }, []);
+    if (!demo.active) loadUserLocation();
+  }, [demo.active]);
+
+  useEffect(() => {
+    if (!demo.active) return;
+    setAlerts(demo.alerts);
+    setError(demo.error);
+    setLoading(demo.loading && !demo.snapshot);
+    setRefreshing(false);
+  }, [demo.active, demo.alerts, demo.error, demo.loading, demo.snapshot]);
 
   // Fetch alerts
   useEffect(() => {
     if (isAuth) {
       fetchAlerts();
+      if (demo.active) return;
       // Set up polling every 30 seconds
       const interval = setInterval(fetchAlerts, 30000);
       return () => clearInterval(interval);
     }
-  }, [isAuth]);
+  }, [demo.active, isAuth]);
 
   async function loadUserLocation() {
     try {
@@ -62,6 +73,11 @@ export default function DashboardScreen() {
   async function fetchAlerts() {
     try {
       setError(null);
+      if (demo.active) {
+        await demo.refresh(false);
+        setAlerts(demo.alerts);
+        return;
+      }
       const response = await alertsApi.getAllAlerts();
 
       if (response.success && response.data) {
@@ -123,17 +139,18 @@ export default function DashboardScreen() {
     }
   }
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    loadUserLocation();
-    fetchAlerts();
-  }, []);
+    if (!demo.active) await loadUserLocation();
+    await fetchAlerts();
+  }, [demo.active]);
 
   const handleAccept = async (alert: AlertType) => {
     if (!user?.id) {
       Alert.alert('Error', 'User not found. Please sign in again.');
       return;
     }
+    const donorId = user.id;
 
     if (alert.responded) {
       Alert.alert('Already Responded', 'You have already responded to this alert.');
@@ -152,7 +169,13 @@ export default function DashboardScreen() {
     setRespondingAlerts((prev) => new Set(prev).add(alert.id));
 
     try {
-      const response = await alertsApi.respondToAlert(alert.id, 'accept', user.id, 45);
+      if (demo.active) {
+        await demo.act({ type: 'DONOR_RESPOND', payload: { alertId: alert.id, outcome: 'ACCEPTED' } });
+        Alert.alert('Thank You!', 'You accepted this shared demo donation request.');
+        return;
+      }
+
+      const response = await alertsApi.respondToAlert(alert.id, 'accept', donorId, 45);
 
       if (response.success) {
         Alert.alert(
@@ -184,6 +207,7 @@ export default function DashboardScreen() {
       Alert.alert('Error', 'User not found. Please sign in again.');
       return;
     }
+    const donorId = user.id;
 
     if (alert.responded) {
       Alert.alert('Already Responded', 'You have already responded to this alert.');
@@ -202,7 +226,12 @@ export default function DashboardScreen() {
             setRespondingAlerts((prev) => new Set(prev).add(alert.id));
 
             try {
-              const response = await alertsApi.respondToAlert(alert.id, 'decline', user.id);
+              if (demo.active) {
+                await demo.act({ type: 'DONOR_RESPOND', payload: { alertId: alert.id, outcome: 'DECLINED' } });
+                return;
+              }
+
+              const response = await alertsApi.respondToAlert(alert.id, 'decline', donorId);
 
               if (response.success) {
                 // Update alert status
@@ -233,7 +262,7 @@ export default function DashboardScreen() {
     if (alert.latitude && alert.longitude) {
       try {
         await openDirections(parseFloat(alert.latitude), parseFloat(alert.longitude));
-      } catch (error) {
+      } catch {
         Alert.alert('Error', 'Failed to open directions. Please try again.');
       }
     } else {
@@ -242,10 +271,17 @@ export default function DashboardScreen() {
   };
 
   const handleCall = async (alert: AlertType) => {
+    if (demo.active) {
+      Alert.alert(
+        'Simulated Hospital Call',
+        `Demo call connected to ${alert.hospitalName}. No real phone call or external message was sent.`
+      );
+      return;
+    }
     if (alert.contactPhone) {
       try {
         await callPhone(alert.contactPhone);
-      } catch (error) {
+      } catch {
         Alert.alert('Error', 'Failed to make call. Please try again.');
       }
     } else {
@@ -381,7 +417,7 @@ export default function DashboardScreen() {
                     distance={alert.distance}
                     time={alert.timePosted}
                     units={alert.unitsNeeded}
-                    description={alert.description}
+                    description={alert.description || ''}
                     onAccept={() => !isResponding && handleAccept(alert)}
                     onDecline={() => !isResponding && handleDecline(alert)}
                     onDirections={() => handleDirections(alert)}

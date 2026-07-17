@@ -115,7 +115,7 @@ export default function InfoCard({
             <View className="flex-row items-center justify-center gap-2">
               <Ionicons name="close-circle" size={18} color={isDisabled ? "#9CA3AF" : "#1E1E1E"} />
               <Text className={`font-semibold text-sm ${isDisabled ? 'text-gray-400' : 'text-dark'}`}>
-                Can't Donate
+                {"Can't Donate"}
               </Text>
             </View>
           </TouchableOpacity>

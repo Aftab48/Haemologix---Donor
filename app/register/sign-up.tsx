@@ -4,12 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import GradientBackground from '../../components/GradientBackground';
 import Button from '../../components/Button';
+import { API_BASE_URL } from '../../lib/config';
 
 export default function SignUpScreen() {
   const router = useRouter();
 
   const handleOpenOnboarding = async () => {
-    const onboardingUrl = 'https://www.haemologix.in/donor/onboard?utm_source=donor_app&utm_medium=events&utm_campaign=donor_page_view';
+    const onboardingUrl = `${API_BASE_URL}/donor/onboard?utm_source=donor_app&utm_medium=events&utm_campaign=donor_page_view`;
     
     try {
       const supported = await Linking.canOpenURL(onboardingUrl);

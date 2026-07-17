@@ -9,12 +9,14 @@ import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
+import { useDemoSandbox } from '../../contexts/DemoSandboxContext';
 import { calculateNextEligible, getEligibilityProgress, formatLastActivity } from '../../lib/utils';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user: authUser, logout, isAuth } = useAuth();
-  const { user, updateUserAvailability, refreshUser } = useUser();
+  const { logout, isAuth } = useAuth();
+  const { user, updateUserAvailability } = useUser();
+  const demo = useDemoSandbox();
   const [loading, setLoading] = useState(true);
   const [isAvailable, setIsAvailable] = useState(user?.isAvailable ?? true);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
@@ -59,6 +61,49 @@ export default function ProfileScreen() {
   };
 
   const handleManageAccount = () => {
+    if (demo.active) {
+      Alert.alert(
+        'Shared Demo',
+        'This app controls the same global sandbox as the donor, hospital, and admin web demos.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Reset Shared Demo',
+            style: 'destructive',
+            onPress: () => {
+              Alert.alert(
+                'Reset for Everyone?',
+                'This resets the shared sandbox for every mobile app and all open web demo dashboards.',
+                [
+                  { text: 'Keep Demo', style: 'cancel' },
+                  {
+                    text: 'Reset Demo',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await demo.reset();
+                        Alert.alert('Demo Reset', 'The shared demo has returned to its baseline data.');
+                      } catch (error) {
+                        Alert.alert('Reset Unavailable', error instanceof Error ? error.message : 'Please try again.');
+                      }
+                    },
+                  },
+                ]
+              );
+            },
+          },
+          {
+            text: 'Exit Demo',
+            onPress: async () => {
+              await demo.exitDemo();
+              router.replace('/register');
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     Alert.alert(
       'Manage Account',
       'What would you like to do?',
@@ -209,12 +254,14 @@ export default function ProfileScreen() {
               </View>
             )}
 
-            {/* Edit Profile Button */}
-            <Button
-              title="Edit Profile"
-              onPress={handleEditProfile}
-              variant="primary"
-            />
+            {/* The shared synthetic profile is intentionally read-only. */}
+            {!demo.active && (
+              <Button
+                title="Edit Profile"
+                onPress={handleEditProfile}
+                variant="primary"
+              />
+            )}
           </View>
 
           {/* Additional Options */}

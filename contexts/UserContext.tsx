@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { userApi } from '../lib/api';
 import { updateAvailability } from '../lib/auth';
 import type { DonorData } from '../lib/types';
+import { useDemoSandbox } from './DemoSandboxContext';
 
 interface UserContextType {
   user: DonorData | null;
@@ -16,6 +17,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  const demo = useDemoSandbox();
   const { user: authUser, refreshUser: refreshAuth } = useAuth();
   const [user, setUser] = useState<DonorData | null>(authUser);
 
@@ -24,6 +26,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [authUser]);
 
   async function updateUser(data: Partial<DonorData>) {
+    if (demo.active) return false;
     if (!user?.id) return false;
 
     try {
@@ -42,6 +45,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   async function updateUserAvailability(isAvailable: boolean) {
     try {
+      if (demo.active) {
+        await demo.act({ type: 'DONOR_SET_AVAILABILITY', payload: { available: isAvailable } });
+        return true;
+      }
       const success = await updateAvailability(isAvailable);
       if (success) {
         setUser((prev) => (prev ? { ...prev, isAvailable } : null));

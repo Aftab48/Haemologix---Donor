@@ -3,17 +3,24 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import GradientBackground from '../components/GradientBackground';
 import Logo from '../components/Logo';
+import { useDemoSandbox } from '../contexts/DemoSandboxContext';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { active, initializing } = useDemoSandbox();
 
   useEffect(() => {
+    if (initializing) return;
+    if (active) {
+      router.replace('/(tabs)/dashboard');
+      return;
+    }
     const timer = setTimeout(() => {
       router.replace('/register');
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [active, initializing, router]);
 
   return (
     <GradientBackground colors={['#E9D8A6', '#94D2BD']}>

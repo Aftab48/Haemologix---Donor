@@ -8,12 +8,14 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorAlert from '../components/ErrorAlert';
 import Logo from '../components/Logo';
 import { useAuth } from '../contexts/AuthContext';
+import { useDemoSandbox } from '../contexts/DemoSandboxContext';
 import { donationApi } from '../lib/api';
 import type { DonationHistory } from '../lib/types';
 
 export default function DonationHistoryScreen() {
   const router = useRouter();
   const { user, isAuth } = useAuth();
+  const demo = useDemoSandbox();
   const [donations, setDonations] = useState<DonationHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,11 +29,23 @@ export default function DonationHistoryScreen() {
     if (user?.id) {
       fetchDonationHistory();
     }
-  }, [user, isAuth, router]);
+  }, [demo.active, user, isAuth, router]);
+
+  useEffect(() => {
+    if (!demo.active) return;
+    setDonations(demo.history);
+    setError(demo.error);
+    setLoading(demo.loading && !demo.snapshot);
+  }, [demo.active, demo.error, demo.history, demo.loading, demo.snapshot]);
 
   async function fetchDonationHistory() {
     try {
       setError(null);
+      if (demo.active) {
+        await demo.refresh(false);
+        setDonations(demo.history);
+        return;
+      }
       if (!user?.id) {
         setError('User not found');
         setLoading(false);

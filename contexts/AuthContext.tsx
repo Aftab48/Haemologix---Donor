@@ -1,8 +1,9 @@
 // Authentication context provider
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getCurrentUser, signIn, signOut, isAuthenticated, getStoredUser } from '../lib/auth';
+import { getCurrentUser, signIn, signOut, isAuthenticated } from '../lib/auth';
 import type { DonorData } from '../lib/types';
+import { useDemoSandbox } from './DemoSandboxContext';
 
 interface AuthContextType {
   user: DonorData | null;
@@ -16,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const demo = useDemoSandbox();
   const [user, setUser] = useState<DonorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuth, setIsAuth] = useState(false);
@@ -58,6 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     try {
+      if (demo.active) {
+        await demo.exitDemo();
+        return;
+      }
       await signOut();
       setUser(null);
       setIsAuth(false);
@@ -68,6 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refreshUser() {
     try {
+      if (demo.active) {
+        await demo.refresh(true);
+        return;
+      }
       const userData = await getCurrentUser(true);
       setUser(userData);
       setIsAuth(!!userData);
@@ -79,9 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user,
-        loading,
-        isAuth,
+        user: demo.active ? demo.donor : user,
+        loading: loading || demo.initializing || demo.loading,
+        isAuth: demo.active || isAuth,
         login,
         logout,
         refreshUser,

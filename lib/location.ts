@@ -1,6 +1,7 @@
 // Location services for getting user location and calculating distances
 
 import * as Location from 'expo-location';
+import * as Linking from 'expo-linking';
 import { calculateDistance, formatDistance } from './utils';
 
 export interface LocationCoordinates {
@@ -107,7 +108,6 @@ export function getDistanceBetween(
 export async function openDirections(latitude: number, longitude: number): Promise<void> {
   try {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    const { Linking } = await import('expo-linking');
     await Linking.openURL(url);
   } catch (error) {
     console.error('Error opening directions:', error);
@@ -119,7 +119,6 @@ export async function openDirections(latitude: number, longitude: number): Promi
  */
 export async function callPhone(phoneNumber: string): Promise<void> {
   try {
-    const { Linking } = await import('expo-linking');
     await Linking.openURL(`tel:${phoneNumber}`);
   } catch (error) {
     console.error('Error calling phone:', error);
