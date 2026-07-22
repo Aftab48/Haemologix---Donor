@@ -3,5 +3,11 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["/app.json", "/app.config.json"],
+      "url": "./.vscode/expo-app-json-schema.json"
+    }
+  ]
 }
