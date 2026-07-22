@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "donor",
-    "slug": "donor",
-    "version": "1.2.0",
+    "name": "Haemologix For Donors",
+    "slug": "haemologix-for-donors",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "donor",
@@ -52,8 +52,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "bd15c4a4-c965-494f-88e6-c080742e2d0b"
+        "projectId": "ffb5c5d6-87fb-4a23-afcd-f11d374fa05b"
       }
-    }
+    },
+    "owner": "aftab.dev"
   }
 }

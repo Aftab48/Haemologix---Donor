@@ -1,4 +1,4 @@
-# Donor Mobile App
+# Haemologix For Donors
 
 A React Native/Expo mobile application for blood donors to receive alerts, respond to donation requests, and manage their profile.
 
